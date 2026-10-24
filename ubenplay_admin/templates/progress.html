@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Progreso{% endblock %}
+{% block content %}
+<h1>⏳ {{ title }}</h1>
+
+<div class="card" style="text-align:center">
+    <div style="margin:20px 0">
+        <div class="progress-bar" style="height:30px">
+            <div id="progress-fill" class="progress-fill" style="width:0%;background:#58CC02"></div>
+        </div>
+    </div>
+    <div style="font-size:24px;font-weight:800;color:#58CC02">
+        <span id="current">0</span> / <span id="total">0</span>
+    </div>
+    <div id="message" style="margin-top:8px;color:#777;font-size:13px">Iniciando...</div>
+    <div id="status-icon" style="font-size:48px;margin-top:16px">⏳</div>
+    
+    <div id="done-section" style="display:none;margin-top:20px">
+        <a href="/import" class="btn btn-green">Volver a Importar</a>
+    </div>
+</div>
+
+<script>
+const taskId = '{{ task_id }}';
+let interval;
+
+function pollProgress() {
+    fetch('/progress/' + taskId)
+        .then(r => r.json())
+        .then(data => {
+            const pct = data.total > 0 ? Math.round((data.current / data.total) * 100) : 0;
+            document.getElementById('progress-fill').style.width = pct + '%';
+            document.getElementById('current').textContent = data.current;
+            document.getElementById('total').textContent = data.total;
+            document.getElementById('message').textContent = data.message || '';
+            
+            if (data.status === 'done') {
+                document.getElementById('progress-fill').style.background = '#58CC02';
+                document.getElementById('status-icon').textContent = '✅';
+                document.getElementById('message').textContent = data.message || 'Completado';
+                document.getElementById('done-section').style.display = 'block';
+                clearInterval(interval);
+            } else if (data.status === 'error') {
+                document.getElementById('progress-fill').style.background = '#FF4B4B';
+                document.getElementById('status-icon').textContent = '❌';
+                document.getElementById('message').textContent = data.message || 'Error';
+                document.getElementById('done-section').style.display = 'block';
+                clearInterval(interval);
+            }
+        })
+        .catch(e => {
+            document.getElementById('message').textContent = 'Error de conexión...';
+        });
+}
+
+pollProgress();
+interval = setInterval(pollProgress, 500);
+</script>
+{% endblock %}

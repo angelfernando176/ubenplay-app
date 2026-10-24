@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>📊 Panel de Control</h1>
+
+<div class="stats-grid">
+    <a href="/" class="stat-box" style="text-decoration:none"><div class="num">{{ stats.total_words }}</div><div class="label">Total palabras</div></a>
+    <a href="/?type=noun" class="stat-box" style="text-decoration:none;{% if wtype=='noun' %}border:2px solid #58CC02{% endif %}"><div class="num">{{ stats.nouns }}</div><div class="label">📝 Sustantivos</div></a>
+    <a href="/?type=verb" class="stat-box" style="text-decoration:none;{% if wtype=='verb' %}border:2px solid #58CC02{% endif %}"><div class="num">{{ stats.verbs }}</div><div class="label">🏃 Verbos</div></a>
+    <a href="/?type=adj" class="stat-box" style="text-decoration:none;{% if wtype=='adj' %}border:2px solid #58CC02{% endif %}"><div class="num">{{ stats.adjectives }}</div><div class="label">🎨 Adjetivos</div></a>
+    <a href="/?type=con" class="stat-box" style="text-decoration:none;{% if wtype=='con' %}border:2px solid #58CC02{% endif %}"><div class="num">{{ stats.connectors }}</div><div class="label">🔗 Conectores</div></a>
+    <div class="stat-box"><div class="num">{{ stats.oraciones }}</div><div class="label">📖 Oraciones</div></div>
+</div>
+
+<div class="card">
+    <h2>📈 {{ cat_label }} por nivel CEFR</h2>
+    {% for level, count in levels.items() %}
+    {% set max_count = 500 %}
+    {% set pct = (count / max_count * 100)|round|int if count > 0 else 0 %}
+    <div style="margin-bottom:8px">
+        <strong>{{ level }}</strong>: {{ count }}
+        <div class="progress-bar"><div class="progress-fill" style="width:{{ pct }}%;background:{% if pct >= 60 %}#58CC02{% elif pct >= 30 %}#FF9600{% else %}#FF4B4B{% endif %}"></div></div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <h2>📂 {{ cat_label }} por categoría</h2>
+    {% if categories %}
+    <table>
+        <tr><th>Categoría</th><th>Cantidad</th></tr>
+        {% for cat, count in categories %}
+        <tr><td>{{ cat }}</td><td><strong>{{ count }}</strong></td></tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p style="color:#777">No hay datos para esta categoría.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>📋 Últimos archivos cargados</h2>
+    {% if recent %}
+    <table>
+        <tr><th>Archivo</th><th>Fecha</th><th>Tamaño</th></tr>
+        {% for f in recent %}
+        <tr><td>{{ f.name }}</td><td>{{ f.date }}</td><td>{{ f.size }}</td></tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p style="color:#777">No hay archivos cargados.</p>
+    {% endif %}
+</div>
+{% endblock %}

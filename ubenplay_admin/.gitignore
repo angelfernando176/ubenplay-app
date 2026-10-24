@@ -1,0 +1,11 @@
+# Secretos y credenciales
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Base de datos SQLite (binaria) y backups
+*.db
+*.db.*

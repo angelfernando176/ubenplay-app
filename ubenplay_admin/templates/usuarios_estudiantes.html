@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Estudiantes{% endblock %}
+{% block content %}
+<h1>🎓 Estudiantes (registrados desde la APK)</h1>
+
+<div class="card">
+    <form method="GET" action="/usuarios" style="display:flex;gap:8px;align-items:end;flex-wrap:wrap">
+        <div>
+            <label>Campo de búsqueda</label>
+            <select name="campo" style="width:auto">
+                {% for key, label in search_fields.items() %}
+                <option value="{{ key }}" {% if campo == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="flex:1;min-width:200px">
+            <label>Buscar</label>
+            <input type="text" name="q" value="{{ q }}" placeholder="Escribe para buscar...">
+        </div>
+        <button type="submit" class="btn btn-blue">🔍 Buscar</button>
+        {% if q %}<a href="/usuarios" class="btn btn-gray">Limpiar</a>{% endif %}
+    </form>
+</div>
+
+<div class="card">
+    <table>
+        <tr>
+            <th>
+                <a href="/usuarios?campo={{ campo }}&q={{ q }}&sort=nombre&order={{ 'asc' if sort=='nombre' and order=='desc' else 'desc' }}">
+                    Nombre {% if sort=='nombre' %}{{ '▲' if order=='asc' else '▼' }}{% endif %}
+                </a>
+            </th>
+            <th>
+                <a href="/usuarios?campo={{ campo }}&q={{ q }}&sort=apellido&order={{ 'asc' if sort=='apellido' and order=='desc' else 'desc' }}">
+                    Apellido {% if sort=='apellido' %}{{ '▲' if order=='asc' else '▼' }}{% endif %}
+                </a>
+            </th>
+            <th>
+                <a href="/usuarios?campo={{ campo }}&q={{ q }}&sort=correo&order={{ 'asc' if sort=='correo' and order=='desc' else 'desc' }}">
+                    Correo {% if sort=='correo' %}{{ '▲' if order=='asc' else '▼' }}{% endif %}
+                </a>
+            </th>
+            <th>
+                <a href="/usuarios?campo={{ campo }}&q={{ q }}&sort=nivel_acceso&order={{ 'asc' if sort=='nivel_acceso' and order=='desc' else 'desc' }}">
+                    Nivel de acceso {% if sort=='nivel_acceso' %}{{ '▲' if order=='asc' else '▼' }}{% endif %}
+                </a>
+            </th>
+            <th>
+                <a href="/usuarios?campo={{ campo }}&q={{ q }}&sort=estado&order={{ 'asc' if sort=='estado' and order=='desc' else 'desc' }}">
+                    Estado {% if sort=='estado' %}{{ '▲' if order=='asc' else '▼' }}{% endif %}
+                </a>
+            </th>
+            <th>
+                <a href="/usuarios?campo={{ campo }}&q={{ q }}&sort=insistencias&order={{ 'asc' if sort=='insistencias' and order=='desc' else 'desc' }}">
+                    Insistencias {% if sort=='insistencias' %}{{ '▲' if order=='asc' else '▼' }}{% endif %}
+                </a>
+            </th>
+            <th>
+                <a href="/usuarios?campo={{ campo }}&q={{ q }}&sort=lopdp&order={{ 'asc' if sort=='lopdp' and order=='desc' else 'desc' }}">
+                    LOPDP {% if sort=='lopdp' %}{{ '▲' if order=='asc' else '▼' }}{% endif %}
+                </a>
+            </th>
+            <th>Acciones</th>
+        </tr>
+        {% for u in usuarios %}
+        <tr>
+            <td>{{ u.nombre or '-' }}</td>
+            <td>{{ u.apellido or '-' }}</td>
+            <td>{{ u.correo }}</td>
+            <td>{{ niveles.get(u.nivel_acceso, u.nivel_acceso) }}</td>
+            <td>
+                <span style="color:{% if u.estado == 1 %}#58CC02{% else %}#999{% endif %}">
+                    {{ estados.get(u.estado, u.estado) }}
+                </span>
+            </td>
+            <td>{{ u.insistencias or 0 }}</td>
+            <td>
+                <span style="color:{% if u.lopdp == 1 %}#58CC02{% else %}#FFB100{% endif %}">
+                    {{ lopdp_estados.get(u.lopdp, u.lopdp) }}
+                </span>
+            </td>
+            <td style="white-space:nowrap">
+                <a href="/usuarios/{{ u.id_usuario }}/editar" class="btn btn-blue btn-sm">Editar</a>
+                {% if u.estado == 1 %}
+                <form method="POST" action="/usuarios/{{ u.id_usuario }}/inactivar" style="display:inline"
+                      onsubmit="return confirm('¿Inactivar a {{ u.nombre }} {{ u.apellido }}?')">
+                    <button class="btn btn-red btn-sm">Inactivar</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" style="text-align:center;color:#999;padding:24px">No hay usuarios registrados aún.</td></tr>
+        {% endfor %}
+    </table>
+
+    {% if pag.pages > 1 %}
+    <div style="margin-top:16px;text-align:center;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+        {% if pag.has_prev %}
+        <a class="btn btn-gray btn-sm" href="/usuarios?campo={{ campo }}&q={{ q }}&sort={{ sort }}&order={{ order }}&page={{ pag.prev_num }}">← Anterior</a>
+        {% endif %}
+        {% for p in pag.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+                {% if p == pag.page %}
+                <span class="btn btn-green btn-sm" style="cursor:default">{{ p }}</span>
+                {% else %}
+                <a class="btn btn-gray btn-sm" href="/usuarios?campo={{ campo }}&q={{ q }}&sort={{ sort }}&order={{ order }}&page={{ p }}">{{ p }}</a>
+                {% endif %}
+            {% else %}
+            <span style="padding:0 4px">…</span>
+            {% endif %}
+        {% endfor %}
+        {% if pag.has_next %}
+        <a class="btn btn-gray btn-sm" href="/usuarios?campo={{ campo }}&q={{ q }}&sort={{ sort }}&order={{ order }}&page={{ pag.next_num }}">Siguiente →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

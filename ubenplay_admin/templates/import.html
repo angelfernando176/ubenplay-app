@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Importar{% endblock %}
+{% block content %}
+<h1>📥 Importar</h1>
+
+<div class="card">
+    <h2>📝 Vocabulario (Sustantivos / Verbos)</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <label>Tipo:</label>
+        <select name="word_type" required>
+            <option value="noun">📝 Sustantivos</option>
+            <option value="verb">🏃 Verbos</option>
+            <option value="adjective">🎨 Adjetivos</option>
+            <option value="connector">🔗 Conectores</option>
+        </select>
+        <label>Categoría (tabla cat_tematica):</label>
+        <select name="category_id">
+            <option value="">-- Auto: join con columna "tematica" del Excel --</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id_tematica }}">{{ cat.nombre_tematica }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" name="new_category" placeholder="O nueva categoría (se crea en cat_tematica)..." style="margin-top:4px;width:100%">
+        <label>Archivo Excel (.xlsx):</label>
+        <input type="file" name="file" accept=".xlsx,.xls" required>
+        <button type="submit" class="btn btn-green" style="margin-top:12px;width:100%">🚀 Importar vocabulario</button>
+    </form>
+</div>
+
+<div class="card" style="background:#e3f2fd; border-left:4px solid #2196f3;">
+    <h2>🔄 Sincronizar desde Supabase</h2>
+    <p style="font-size:12px;color:#555;margin-top:4px">
+       Supabase es la fuente de verdad. Este botón refleja los datos de Supabase en SQLite
+       (palabras, sustantivos, verbos, oraciones y temáticas).
+    </p>
+    <form method="POST" action="/pull-supabase" style="margin-top:8px">
+        <button type="submit" class="btn btn-blue" style="width:100%">⬇️ Sincronizar desde Supabase → SQLite</button>
+    </form>
+</div>
+
+<div class="card">
+    <h2>📖 Oraciones (carga batch)</h2>
+    <form method="POST" action="/import-sentences" enctype="multipart/form-data">
+        <label>Archivo Excel (.xlsx):</label>
+        <input type="file" name="file" accept=".xlsx,.xls" required>
+        <button type="submit" class="btn btn-blue" style="margin-top:12px;width:100%">📖 Importar oraciones</button>
+    </form>
+    <p style="font-size:11px;color:#666;margin-top:6px">
+       Columnas: palabra_espaniol, palabra_aleman, Nivel, tematica, categoria,<br>
+       oracion_pregunta1, traduccion_pregunta1, oracion_pregunta2, traduccion_pregunta2,<br>
+       oracion_negacion1, traduccion_negacion1, oracion_negacion2, traduccion_negacion2,<br>
+       oracion_afirmativa1, traduccion_afirmativa1, oracion_afirmativa2, traduccion_afirmativa2,<br>
+       oracion_afirmativa3, traduccion_afirmativa3
+    </p>
+    <form method="POST" action="/sync-oraciones" style="margin-top:12px">
+        <button type="submit" class="btn btn-blue" style="width:100%">🔄 Sincronizar oraciones a Supabase</button>
+    </form>
+</div>
+
+{% if import_result %}
+<div class="card" style="background:#e8f5e9; border-left: 4px solid #4caf50;">
+    <h3>{{ import_result.msg }}</h3>
+    {% if import_result.errors %}
+    <details><summary>🔍 Detalles ({{ import_result.errors|length }} errores)</summary>
+    <ul>{% for e in import_result.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+    </details>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="card">
+    <h2>📋 Formato del Excel</h2>
+    <table>
+        <tr><th>Col</th><th>Sustantivos</th><th>Verbos</th></tr>
+        <tr><td>A</td><td>español</td><td>español</td></tr>
+        <tr><td>B</td><td>artículo (der/die/das)</td><td>infinitivo</td></tr>
+        <tr><td>C</td><td>alemán</td><td>alemán</td></tr>
+        <tr><td>D</td><td>plural</td><td>-</td></tr>
+        <tr><td>E</td><td>nivel (A1/A2/B1/B2)</td><td>nivel</td></tr>
+        <tr><td>F</td><td>categoría/tematica</td><td>categoría</td></tr>
+        <tr><td>G</td><td>oracion_ejemplo</td><td>-</td></tr>
+        <tr><td>H</td><td>definicion</td><td>-</td></tr>
+    </table>
+</div>
+
+{% if summary %}
+<div id="import-summary-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px;">
+  <div style="background:#fff;border-radius:14px;max-width:520px;width:100%;max-height:84vh;overflow:auto;padding:22px;box-shadow:0 10px 40px rgba(0,0,0,.35);">
+    <h2 style="margin:0 0 14px;font-size:20px;">📋 Resumen de la carga</h2>
+    <ul style="list-style:none;padding:0;margin:0 0 14px;line-height:1.8;font-size:15px;">
+      {% for line in summary.lines %}
+      <li style="border-bottom:1px solid #f0f0f0;padding:5px 0;">{{ line }}</li>
+      {% endfor %}
+    </ul>
+    {% if summary.details %}
+    <details style="margin-bottom:14px;">
+      <summary style="cursor:pointer;font-weight:600;color:#555;">🔍 Detalles ({{ summary.details|length }})</summary>
+      <ul style="margin-top:8px;padding-left:18px;font-size:13px;color:#666;max-height:220px;overflow:auto;">{% for d in summary.details %}<li>{{ d }}</li>{% endfor %}</ul>
+    </details>
+    {% endif %}
+    <button type="button" onclick="document.getElementById('import-summary-overlay').style.display='none'" style="width:100%;padding:11px;background:#4caf50;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;">Entendido</button>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Editar Palabra{% endblock %}
+{% block content %}
+<h1>✏️ Editar Palabra #{{ word.id_palabra }}</h1>
+
+<div class="card">
+    <form method="POST">
+        <label>Español:</label>
+        <input type="text" name="palabra_es" value="{{ word.palabra_es }}" required>
+
+        <label>Alemán:</label>
+        <input type="text" name="palabra_de" value="{{ word.palabra_de }}" required>
+
+        <label>Artículo:</label>
+        <select name="id_tipo">
+            <option value="1" {% if word.id_tipo==1 %}selected{% endif %}>der</option>
+            <option value="2" {% if word.id_tipo==2 %}selected{% endif %}>die</option>
+            <option value="3" {% if word.id_tipo==3 %}selected{% endif %}>das</option>
+        </select>
+
+        <label>Plural:</label>
+        <input type="text" name="plural" value="{{ word.sustantivo.plural if word.sustantivo else '' }}">
+
+        <label>Nivel:</label>
+        <select name="id_nivel">
+            <option value="1" {% if word.id_nivel==1 %}selected{% endif %}>A1</option>
+            <option value="2" {% if word.id_nivel==2 %}selected{% endif %}>A2</option>
+            <option value="3" {% if word.id_nivel==3 %}selected{% endif %}>B1</option>
+            <option value="4" {% if word.id_nivel==4 %}selected{% endif %}>B2</option>
+        </select>
+
+        <label>Temática:</label>
+        <select name="id_tematica">
+            <option value="1" {% if word.id_tematica==1 %}selected{% endif %}>Familia</option>
+            <option value="2" {% if word.id_tematica==2 %}selected{% endif %}>Casa</option>
+            <option value="3" {% if word.id_tematica==3 %}selected{% endif %}>Comida</option>
+            <option value="4" {% if word.id_tematica==4 %}selected{% endif %}>Transporte</option>
+            <option value="5" {% if word.id_tematica==5 %}selected{% endif %}>Oficios</option>
+            <option value="6" {% if word.id_tematica==6 %}selected{% endif %}>Viajes</option>
+            <option value="7" {% if word.id_tematica==7 %}selected{% endif %}>Ciudad</option>
+            <option value="99" {% if word.id_tematica==99 %}selected{% endif %}>General</option>
+        </select>
+
+        <label>Definición:</label>
+        <input type="text" name="definicion" value="{{ word.definicion or '' }}">
+
+        <label>Oración de ejemplo:</label>
+        <textarea name="oracion_ejemplo" rows="2">{{ word.oracion_ejemplo or '' }}</textarea>
+
+        <label>Emoji:</label>
+        <select name="texto_emoji" style="width:80px;font-size:20px">
+            {% set tema = word.id_tematica or 99 %}
+            {% set cat_emoji = {1:'👨‍👩‍👧‍👦',2:'🏠',3:'🍎',4:'🚗',5:'👷',6:'✈️',7:'🏙️',8:'🏢',9:'💻',10:'💊',11:'🛍️',12:'🏛️',13:'📅',14:'⚽',15:'🌿',16:'👕',17:'📚',18:'🎭',19:'😊',20:'💬',99:'📦'} %}
+            {% for e in ['📦','🚗','✈️','🍎','🏠','👷','🏙️','💻','💊','🛍️','📚','⚽','🌿'] %}
+            <option value="{{ e }}" {% if word.texto_emoji == e or (not word.texto_emoji and cat_emoji.get(tema) == e) %}selected{% endif %}>{{ e }}</option>
+            {% endfor %}
+        </select>
+
+        <div style="display:flex;gap:8px;margin-top:16px">
+            <button type="submit" class="btn btn-green">💾 Guardar</button>
+            <a href="/words" class="btn" style="background:#ddd">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

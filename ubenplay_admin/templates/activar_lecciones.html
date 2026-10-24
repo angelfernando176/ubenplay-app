@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Activar lecciones{% endblock %}
+{% block content %}
+<h1>🎓 Activar lecciones</h1>
+
+<div class="card">
+    <h2>Cargas batch</h2>
+    <p style="font-size:12px;color:#666;margin-bottom:10px">
+        Cada carga batch guarda aquí sus metadatos. Las lecciones para el estudiante se crean al
+        <strong>Activar</strong> la carga. Estados: <span style="color:#777;font-weight:700">Cargada</span>
+        (no visible al estudiante) · <span style="color:#58CC02;font-weight:700">Disponible</span>
+        (visible para repaso) · <span style="color:#FF4B4B;font-weight:700">Inactivado</span> (bloqueada).
+    </p>
+
+    {% if rows %}
+    <table>
+        <tr>
+            <th>Fecha de carga</th>
+            <th>Tipo de carga</th>
+            <th>Cantidad</th>
+            <th>Archivo</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+        {% for r in rows %}
+        <tr>
+            <td>{{ r.fecha }}</td>
+            <td>{{ r.tipo }}</td>
+            <td>{{ r.cantidad }}</td>
+            <td style="font-size:12px;color:#777">{{ r.archivo }}</td>
+            <td><span style="font-weight:700;color:{{ r.estado_color }}">{{ r.estado_label }}</span></td>
+            <td style="white-space:nowrap">
+                {% if r.estado == 0 %}
+                <button class="btn btn-green btn-sm" onclick="openModal({{ r.id }})">Activar</button>
+                <a class="btn btn-blue btn-sm" href="/words?id_tematica={{ r.id_tematica }}&id_categoria={{ r.id_categoria }}">Revisar</a>
+                <form method="POST" action="/activar-lecciones/{{ r.id }}/borrar" style="display:inline" onsubmit="return confirm('¿Borrar esta carga de información?')">
+                    <button class="btn btn-red btn-sm">Borrar</button>
+                </form>
+                {% elif r.estado == 1 %}
+                <a class="btn btn-blue btn-sm" href="/words?id_tematica={{ r.id_tematica }}&id_categoria={{ r.id_categoria }}">Revisar</a>
+                <form method="POST" action="/activar-lecciones/{{ r.id }}/inactivar" style="display:inline" onsubmit="return confirm('¿Desea desactivar esta carga de información?')">
+                    <button class="btn btn-red btn-sm">Inactivar</button>
+                </form>
+                {% else %}
+                <span style="color:#aaa;font-size:12px">—</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p style="color:#999;text-align:center;padding:20px 0">
+        No hay cargas batch registradas todavía. Sube vocabulario en <a href="/import">Importar</a>.
+    </p>
+    {% endif %}
+</div>
+
+{% for r in rows if r.estado == 0 %}
+<div id="modal-{{ r.id }}" class="modal-overlay" style="display:none">
+    <div class="modal-box">
+        <h3>Activar carga #{{ r.id }} ({{ r.tipo }})</h3>
+        <p style="font-size:12px;color:#666">Selecciona los juegos que el estudiante repasará:</p>
+        <form id="form-{{ r.id }}" method="POST" action="/activar-lecciones/{{ r.id }}/activar">
+            <div class="game-list">
+                {% for j in r.juegos %}
+                <label class="game-opt">
+                    <input type="checkbox" name="juego" value="{{ j.id }}" checked> {{ j.nombre }}
+                </label>
+                {% endfor %}
+            </div>
+            <input type="hidden" name="juegos" id="juegos-{{ r.id }}" value="">
+            <div style="display:flex;gap:8px;margin-top:12px">
+                <button type="button" class="btn btn-gray" style="flex:1" onclick="closeModal({{ r.id }})">Cancelar</button>
+                <button type="button" class="btn btn-green" style="flex:1" onclick="confirmarActivacion({{ r.id }})">Aceptar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+<style>
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; z-index:9999; padding:16px; }
+    .modal-box { background:#fff; border-radius:14px; max-width:440px; width:100%; padding:22px; box-shadow:0 10px 40px rgba(0,0,0,.35); }
+    .game-list { max-height:260px; overflow:auto; margin:10px 0; border:1px solid #eee; border-radius:8px; padding:8px; }
+    .game-opt { display:block; font-weight:normal; font-size:14px; padding:4px 6px; }
+</style>
+
+<script>
+function openModal(id) { document.getElementById('modal-' + id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById('modal-' + id).style.display = 'none'; }
+function confirmarActivacion(id) {
+    var form = document.getElementById('form-' + id);
+    var checked = form.querySelectorAll('input[name="juego"]:checked');
+    if (checked.length === 0) { alert('Selecciona al menos un juego'); return; }
+    document.getElementById('juegos-' + id).value = Array.from(checked).map(function(c){ return c.value; }).join(',');
+    if (confirm('⚠️ Si la carga es activada, NO podrá borrarse en el futuro. ¿Continuar?')) {
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

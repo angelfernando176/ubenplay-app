@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Editar estudiante{% endblock %}
+{% block content %}
+<h1>✏️ Editar estudiante</h1>
+
+<div class="card">
+    <h2>{{ u.nombre }} {{ u.apellido }}</h2>
+    <table style="max-width:600px">
+        <tr><th style="width:200px">Correo</th><td>{{ u.correo }}</td></tr>
+        <tr><th>Rango de edad</th><td>{{ rango_edad.get(u.rango_edad, u.rango_edad) }}</td></tr>
+        <tr><th>País</th><td>{{ u.pais or '-' }}</td></tr>
+        <tr><th>Correo representante</th><td>{{ u.correo_representante or '-' }}</td></tr>
+        <tr><th>Registrado</th><td>{{ u.fecha_registro.strftime('%d/%m/%Y %H:%M') if u.fecha_registro else '-' }}</td></tr>
+        <tr><th>Insistencias</th><td>{{ u.insistencias or 0 }}</td></tr>
+        <tr><th>LOPDP</th><td>{{ lopdp_estados.get(u.lopdp, u.lopdp) }}</td></tr>
+    </table>
+</div>
+
+<div class="card">
+    <form method="POST" action="/usuarios/{{ u.id_usuario }}/editar" style="max-width:400px">
+        <label>Nivel de acceso</label>
+        <select name="nivel_acceso">
+            {% for k, v in niveles.items() %}
+            <option value="{{ k }}" {% if u.nivel_acceso == k %}selected{% endif %}>{{ k }} - {{ v }}</option>
+            {% endfor %}
+        </select>
+        <p style="font-size:12px;color:#777;margin-top:4px">
+            Al subir de nivel (1→2, 2→3, 3→4) se genera un código de 6 dígitos y se envía por correo.
+        </p>
+
+        <label>Estado</label>
+        <select name="estado">
+            {% for k, v in estados.items() %}
+            <option value="{{ k }}" {% if u.estado == k %}selected{% endif %}>{{ v }}</option>
+            {% endfor %}
+        </select>
+
+        <div style="margin-top:16px;display:flex;gap:8px">
+            <button type="submit" class="btn btn-green">Guardar</button>
+            <a href="/usuarios" class="btn btn-gray">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Autorización LOPDP</h2>
+    <p style="font-size:13px;color:#555">Reenvía el correo para que el usuario autorice el uso de sus datos personales.</p>
+    <form method="POST" action="/usuarios/{{ u.id_usuario }}/insistir">
+        <button type="submit" class="btn btn-blue">📧 Insistir en Autorización</button>
+    </form>
+</div>
+{% endblock %}

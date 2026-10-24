@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="login-box">
+    <div class="card">
+        <h2 style="text-align:center">🦉 Ubenplay Admin</h2>
+        <p style="text-align:center;color:#777;margin-bottom:16px">Panel de administración</p>
+        <form method="POST">
+            <label>Usuario</label>
+            <input type="text" name="username" placeholder="admin" required>
+            <label>Contraseña</label>
+            <input type="password" name="password" placeholder="••••••" required>
+            <button type="submit" class="btn btn-green" style="width:100%;margin-top:12px">Iniciar sesión</button>
+        </form>
+        <p style="text-align:center;margin-top:12px;font-size:11px;color:#aaa">Usuario por defecto: admin / admin123</p>
+    </div>
+</div>
+{% endblock %}

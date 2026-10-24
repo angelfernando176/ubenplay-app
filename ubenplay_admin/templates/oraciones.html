@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Oraciones{% endblock %}
+{% block content %}
+<h1>📖 Oraciones <span style="font-size:14px;color:#666">({{ total }} registros)</span></h1>
+
+<div class="card" style="margin-bottom:12px">
+    <form method="GET" style="display:flex;gap:8px;align-items:end;flex-wrap:wrap">
+        <div><label>Buscar</label><input type="text" name="search" value="{{ search }}" placeholder="texto..."></div>
+        <div><label>Campo</label>
+            <select name="field">
+                <option value="oracion" {% if field=='oracion' %}selected{% endif %}>Oración</option>
+                <option value="traduccion" {% if field=='traduccion' %}selected{% endif %}>Traducción</option>
+                <option value="palabra" {% if field=='palabra' %}selected{% endif %}>Palabra</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-blue">🔍 Buscar</button>
+        {% if search %}<a href="/oraciones" class="btn" style="background:#eee">✖ Limpiar</a>{% endif %}
+    </form>
+</div>
+
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Acciones</th>
+                <th>Palabra</th>
+                <th><a href="?sort=oracion&order={{ 'desc' if sort=='oracion' and order=='asc' else 'asc' }}{% if search %}&search={{ search }}&field={{ field }}{% endif %}">Oración ejemplo {{ '▲' if sort=='oracion' and order=='asc' else '▼' if sort=='oracion' else '' }}</a></th>
+                <th>Traducción</th>
+                <th><a href="?sort=nivel&order={{ 'desc' if sort=='nivel' and order=='asc' else 'asc' }}{% if search %}&search={{ search }}&field={{ field }}{% endif %}">Nivel {{ '▲' if sort=='nivel' and order=='asc' else '▼' if sort=='nivel' else '' }}</a></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for o in oraciones %}
+            <tr>
+                <td style="white-space:nowrap">
+                    <a href="/oracion/edit/{{ o.id_oracion }}" class="btn" style="padding:2px 6px;font-size:11px" title="Editar">✏️</a>
+                    <form method="POST" action="/oracion/delete/{{ o.id_oracion }}" onsubmit="return confirm('¿Eliminar?')" style="display:inline">
+                        <button class="btn btn-red" style="padding:2px 6px;font-size:11px">🗑️</button>
+                    </form>
+                </td>
+                <td><strong>{{ o._palabra_de }}</strong> <small>({{ o._palabra_es }})</small></td>
+                <td>{{ o.oracion_ejemplo[:100] }}{% if o.oracion_ejemplo|length > 100 %}...{% endif %}</td>
+                <td>{{ o.oracion_traduccion[:80] or '-' }}</td>
+                <td>{{ o._nivel_nombre or o.nivel_dificultad }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6">No hay oraciones.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:12px">
+    {% if pagination.has_prev %}
+    <a href="?page={{ pagination.prev_num }}{% if search %}&search={{ search }}&field={{ field }}{% endif %}{% if sort %}&sort={{ sort }}&order={{ order }}{% endif %}" class="btn">« Anterior</a>
+    {% endif %}
+    <span>Página {{ pagination.page }} de {{ pagination.pages }}</span>
+    {% if pagination.has_next %}
+    <a href="?page={{ pagination.next_num }}{% if search %}&search={{ search }}&field={{ field }}{% endif %}{% if sort %}&sort={{ sort }}&order={{ order }}{% endif %}" class="btn">Siguiente »</a>
+    {% endif %}
+</div>
+{% endblock %}

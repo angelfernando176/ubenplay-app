@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Palabras{% endblock %}
+{% block content %}
+<h1>📝 Gestión de Palabras <span style="color:#777;font-size:14px">({{ total }} registros)</span></h1>
+
+<!-- FILTROS -->
+<div class="card" style="padding:12px;margin-bottom:12px">
+    <form method="GET" style="display:flex;gap:8px;align-items:end;flex-wrap:wrap">
+        <div>
+            <label>Nivel:</label>
+            <select name="nivel">
+                <option value="">Todos</option>
+                {% for n in niveles %}
+                <option value="{{ n }}" {% if nivel==n %}selected{% endif %}>{{ n }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label>Categoría:</label>
+            <select name="categoria">
+                <option value="">Todas</option>
+                {% for t in tematicas %}
+                <option value="{{ t }}" {% if categoria==t %}selected{% endif %}>{{ t }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="flex:1;min-width:200px">
+            <label>Buscar:</label>
+            <div style="display:flex;gap:4px">
+                <select name="search_field" style="width:120px">
+                    <option value="palabra_es" {% if search_field=='palabra_es' %}selected{% endif %}>Español</option>
+                    <option value="palabra_de" {% if search_field=='palabra_de' %}selected{% endif %}>Alemán</option>
+                    <option value="definicion" {% if search_field=='definicion' %}selected{% endif %}>Definición</option>
+                    <option value="oracion_ejemplo" {% if search_field=='oracion_ejemplo' %}selected{% endif %}>Oración</option>
+                </select>
+                <input type="text" name="search" value="{{ search_query }}" placeholder="Escribe para buscar..." style="flex:1">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-blue">🔍 Filtrar</button>
+        <a href="/words" class="btn" style="background:#ddd">Limpiar</a>
+    </form>
+</div>
+
+<!-- TABLA -->
+<div class="card">
+    <table style="width:100%;border-collapse:collapse">
+        <thead>
+            <tr>
+                <th style="width:60px">Acciones</th>
+                <th><a href="?sort=id_palabra&order={% if sort=='id_palabra' and order=='asc' %}desc{% else %}asc{% endif %}{%if nivel%}&nivel={{nivel}}{%endif%}{%if categoria%}&categoria={{categoria}}{%endif%}{%if search_query%}&search_field={{search_field}}&search={{search_query}}{%endif%}"># {% if sort=='id_palabra' %}{% if order=='asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+                <th><a href="?sort=palabra_es&order={% if sort=='palabra_es' and order=='asc' %}desc{% else %}asc{% endif %}{%if nivel%}&nivel={{nivel}}{%endif%}{%if categoria%}&categoria={{categoria}}{%endif%}{%if search_query%}&search_field={{search_field}}&search={{search_query}}{%endif%}">🇪🇸 Español {% if sort=='palabra_es' %}{% if order=='asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+                <th><a href="?sort=palabra_de&order={% if sort=='palabra_de' and order=='asc' %}desc{% else %}asc{% endif %}{%if nivel%}&nivel={{nivel}}{%endif%}{%if categoria%}&categoria={{categoria}}{%endif%}{%if search_query%}&search_field={{search_field}}&search={{search_query}}{%endif%}">🇩🇪 Alemán {% if sort=='palabra_de' %}{% if order=='asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+                <th>Artículo</th>
+                <th>Plural</th>
+                <th><a href="?sort=id_nivel&order={% if sort=='id_nivel' and order=='asc' %}desc{% else %}asc{% endif %}{%if nivel%}&nivel={{nivel}}{%endif%}{%if categoria%}&categoria={{categoria}}{%endif%}{%if search_query%}&search_field={{search_field}}&search={{search_query}}{%endif%}">Nivel {% if sort=='id_nivel' %}{% if order=='asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+                <th><a href="?sort=id_tematica&order={% if sort=='id_tematica' and order=='asc' %}desc{% else %}asc{% endif %}{%if nivel%}&nivel={{nivel}}{%endif%}{%if categoria%}&categoria={{categoria}}{%endif%}{%if search_query%}&search_field={{search_field}}&search={{search_query}}{%endif%}">Tema {% if sort=='id_tematica' %}{% if order=='asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+                <th>Oración</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for w in words %}
+            <tr style="border-bottom:1px solid #eee">
+                <td style="white-space:nowrap">
+                    <a href="/word/edit/{{ w.id_palabra }}" class="btn btn-blue" style="padding:2px 8px;font-size:11px">✏️</a>
+                    <form method="POST" action="/word/toggle/{{ w.id_palabra }}" style="display:inline" onsubmit="return confirm('¿Inactivar esta palabra? Ya no aparecerá en los juegos.')">
+                        <button type="submit" class="btn btn-red" style="padding:2px 8px;font-size:11px">🔴</button>
+                    </form>
+                </td>
+                <td>{{ w.palabra_es }}</td>
+                <td><strong>{{ w.palabra_de }}</strong></td>
+                <td style="color:#58CC02">{{ {1:'der',2:'die',3:'das',4:'die'}.get(w.id_tipo or 1, 'der') }}</td>
+                <td>{{ w.sustantivo.plural if w.sustantivo else '-' }}</td>
+                <td><span class="badge">{{ {1:'A1',2:'A2',3:'B1',4:'B2'}.get(w.id_nivel or 1, 'A1') }}</span></td>
+                <td style="font-size:12px">{{ {1:'Familia',2:'Casa',3:'Comida',4:'Transporte',5:'Oficios',6:'Viajes',7:'Ciudad',99:'General'}.get(w.id_tematica or 99, '?') }}</td>
+                <td style="font-size:11px;color:#777;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ w.oracion_ejemplo or '-' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- PAGINACIÓN -->
+    {% if pagination.pages > 1 %}
+    <div style="margin-top:16px;text-align:center">
+        {% if pagination.has_prev %}
+        <a href="?page={{ pagination.prev_num }}{%if nivel%}&nivel={{nivel}}{%endif%}{%if categoria%}&categoria={{categoria}}{%endif%}{%if search_query%}&search_field={{search_field}}&search={{search_query}}{%endif%}{%if sort%}&sort={{sort}}&order={{order}}{%endif%}" class="btn">← Anterior</a>
+        {% endif %}
+        <span style="margin:0 12px">Pág {{ pagination.page }} de {{ pagination.pages }}</span>
+        {% if pagination.has_next %}
+        <a href="?page={{ pagination.next_num }}{%if nivel%}&nivel={{nivel}}{%endif%}{%if categoria%}&categoria={{categoria}}{%endif%}{%if search_query%}&search_field={{search_field}}&search={{search_query}}{%endif%}{%if sort%}&sort={{sort}}&order={{order}}{%endif%}" class="btn">Siguiente →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

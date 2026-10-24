@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+
+# Logs y temporales
+*.log
+*.hprof
+
+# Node (por si algún script lo usa)
+node_modules/
